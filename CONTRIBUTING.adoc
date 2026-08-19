@@ -1,0 +1,32 @@
+= コントリビューションガイド
+
+== 開発環境
+
+Cargo manifestの``rust-version``で指定したRustを使用します。``cargo-make``、``cargo-audit``、
+``cargo-machete``、``actionlint``、``adocweave``も必要です。Nixを使う場合は``nix develop``で
+これらが揃います。
+
+== 変更手順
+
+. 作業内容をGitHub Issueへ記録します。
+. ``main``から目的が分かるbranchを作成します。
+. 実装と同時に、契約試験と関連文書を更新します。
+. ``cargo make verify``を実行します。
+. Pull Requestへ目的、主な差分、検証結果を記載します。
+
+ID tokenの検証順序、claim読み取りのfail closed条件、``LoginAttemptStore``の契約を変更する場合は、
+外部から観察できる動作が変わらないrefactorでも回帰試験を追加してください。
+
+== GitHub上の操作
+
+``main``へ直接pushしません。Pull Requestを使用し、必須checkが成功した後にsquash方式でmergeします。
+1つのPull Requestが``main``の1 commitに対応するため、``main``の履歴を一列で読めます。
+
+作業ブランチが``main``と衝突した場合は、force pushを避けるため``main``を作業ブランチへmergeして
+解消します。squash方式では、この解消用のmerge commitも``main``へは残りません。
+
+== 利用側への影響
+
+このリポジトリの2 crateは、利用側がGit revisionを完全SHAで固定して取り込みます。公開APIまたは
+検証動作を変更した場合はCHANGELOG.adocへ記録し、利用側がrevision更新時に差分を判断できるように
+します。

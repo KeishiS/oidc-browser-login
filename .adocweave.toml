@@ -1,0 +1,14 @@
+schema-version = 1
+
+[analysis]
+syntax-mode = "strict"
+
+[lint]
+max-line-length = 120
+max-consecutive-blank-lines = 1
+max-diagnostics = 1000
+
+[format]
+newline = "lf"
+final-newline = true
+max-consecutive-blank-lines = 1

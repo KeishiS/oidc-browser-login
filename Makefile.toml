@@ -1,0 +1,104 @@
+[config]
+default_to_workspace = false
+skip_core_tasks = true
+
+[tasks.default]
+alias = "verify"
+
+[tasks.fmt]
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.fmt-check]
+command = "cargo"
+args = ["fmt", "--all", "--", "--check"]
+
+[tasks.check]
+command = "cargo"
+args = ["check", "--workspace", "--all-targets", "--all-features"]
+
+[tasks.clippy]
+command = "cargo"
+args = ["clippy", "--workspace", "--all-targets", "--all-features", "--", "-D", "warnings"]
+
+[tasks.test]
+command = "cargo"
+args = ["test", "--workspace", "--all-features"]
+
+[tasks.coverage]
+description = "workspaceのカバレッジレポートを生成します"
+script_runner = "@shell"
+script = '''
+set -eu
+report_dir=target/coverage
+ignored_sources='(^|/)(tests?(/|\.rs$)|testkit\.rs$)'
+mkdir -p "$report_dir"
+
+cargo llvm-cov clean --workspace
+cargo llvm-cov \
+  --workspace --all-features --locked \
+  --ignore-filename-regex "$ignored_sources" \
+  --json --output-path "$report_dir/workspace.json"
+jq -r '
+  def row($name; $summary):
+    [$name,
+     $summary.lines.count, $summary.lines.covered, $summary.lines.percent,
+     $summary.regions.count, $summary.regions.covered, $summary.regions.percent,
+     $summary.functions.count, $summary.functions.covered, $summary.functions.percent]
+    | @tsv;
+  . as $report
+  | (["file", "lines", "covered", "line_%", "regions", "covered", "region_%",
+      "functions", "covered", "function_%"] | @tsv),
+    ($report.data[0].files[] | row(.filename; .summary)),
+    row("TOTAL"; $report.data[0].totals)
+' "$report_dir/workspace.json" >"$report_dir/workspace-summary.txt"
+
+printf '\nworkspace coverage\n'
+cat "$report_dir/workspace-summary.txt"
+printf '\ncoverage reports: %s\n' "$report_dir"
+'''
+
+[tasks.doc-check]
+env = { "RUSTDOCFLAGS" = "-D warnings" }
+command = "cargo"
+args = ["doc", "--workspace", "--all-features", "--no-deps"]
+
+[tasks.docs-check]
+script_runner = "@shell"
+script = "bash tools/check-docs.sh"
+
+[tasks.dependency-boundaries]
+script_runner = "@shell"
+script = "bash tools/check-dependency-boundaries.sh"
+
+[tasks.unused-dependencies]
+command = "cargo"
+args = ["machete", "--with-metadata"]
+
+# RUSTSEC-2023-0071(rsa crateのMarvin attack)は、既定でES256だけを許可しRSA署名の検証を
+# 使わないため影響しないと判断して除外しています。判断の根拠と再評価の条件はSECURITY.adocを
+# 参照してください。
+[tasks.security-audit]
+command = "cargo"
+args = ["audit", "--deny", "warnings", "--ignore", "RUSTSEC-2023-0071"]
+
+[tasks.actionlint]
+command = "actionlint"
+args = [
+    ".github/workflows/ci.yml",
+    ".github/workflows/security-audit.yml",
+]
+
+[tasks.verify]
+dependencies = [
+    "fmt-check",
+    "check",
+    "clippy",
+    "test",
+    "doc-check",
+    "docs-check",
+    "dependency-boundaries",
+    "unused-dependencies",
+    "security-audit",
+    "actionlint",
+]

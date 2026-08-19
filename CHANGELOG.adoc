@@ -1,0 +1,12 @@
+= 変更履歴
+
+この文書には、利用側へ影響する変更だけを記録します。
+
+== 0.1.0 - 2026-08-19
+
+=== 追加
+
+* 標準OIDCのブラウザーログイン中核(Authorization Code + PKCE S256、ID tokenの検証)
+* IdP固有値の設定(追加scope、所属claim名、許可署名アルゴリズム、token endpointのclient認証方式)
+* 保存adapterへ適用できる``LoginAttemptStore``契約試験
+* wiremockで動く疑似IdP(``FakeIdp``、ES256とRS256の署名に対応)

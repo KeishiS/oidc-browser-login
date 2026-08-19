@@ -1,0 +1,80 @@
+= oidc-browser-login
+:toc:
+:toclevels: 2
+
+自前でホストするWebアプリケーションに、標準OpenID Connect(OIDC)のブラウザーログインを
+組み込むためのRustライブラリーです。OIDCは「外部のIdentity Provider(IdP)が利用者を認証し、
+アプリケーションへ署名付きの本人情報(ID token)を渡す」標準仕様で、このライブラリーは
+Authorization Code + PKCE S256の開始とcallback検証だけを担います。HTTPフレームワーク、
+データベース、特定のIdP製品、製品固有のdomain modelから独立しています。
+
+== 提供するcrate
+
+``oidc-browser-login``::
+ログイン開始URLの発行と、callbackで受け取るID tokenの検証(署名、issuer、audience、nonce)を
+行う中核crateです。検証済みの結果だけを``VerifiedIdentity``型で返します。
+
+``oidc-browser-login-testkit``::
+試験用の部品です。wiremockで動く疑似IdP(``FakeIdp``)と、保存adapterへ適用する
+``LoginAttemptStore``の契約試験を提供します。実IdPやコンテナーなしでログインの全経路を
+試験できます。
+
+== 設計の要点
+
+* 検証済みの本人情報は``VerifiedIdentity``と``VerifiedGroups``でだけ表現します。これらは
+  crateの外から構築できないため、「署名検証に成功した後でだけclaimを読める」という順序が
+  型で保証されます。
+* IdP固有の値はすべて設定です。追加scope、所属claim名、許可する署名アルゴリズム
+  (既定はES256のみ)、token endpointのclient認証方式を``OidcSettings``で調整できます。
+  既定値はKanidmをそのまま使える値にしています。
+* 認可(誰の利用を許可するか)はこのライブラリーの責務ではありません。呼出し側が
+  ``VerifiedIdentity``のclaim値を自身の設定と突き合わせて判定します。
+* ID tokenの大きさ、claim値の件数と長さには設定で変更できない上限があり、超過は拒否します
+  (fail closed)。
+* 時刻(``Clock``)、乱数(``Entropy``)、ログイン試行の保存(``LoginAttemptStore``)はtraitで
+  受け取ります。SQLiteやPostgreSQLなどの保存実装は呼出し側が用意し、testkitの契約試験で
+  交換可能性を確かめます。
+
+== 責務の境界
+
+Cookieの発行、CSRF対策、Origin検査などのHTTP境界と、sessionの管理は呼出し側の責務です。
+このライブラリーはHTTP requestを直接受け取らず、callbackの``code``と``state``の文字列だけを
+受け取ります。
+
+== 配布状態
+
+v0.1系列は公開APIを評価する段階です。crates.ioには公開せず、利用側は監査済みcommitを
+Git revisionとして固定します。2つのcrateは同じversionで管理します。
+
+[source,toml]
+----
+[dependencies]
+oidc-browser-login = {
+  git = "https://github.com/KeishiS/oidc-browser-login.git",
+  rev = "<監査済みcommit>"
+}
+
+[dev-dependencies]
+oidc-browser-login-testkit = {
+  git = "https://github.com/KeishiS/oidc-browser-login.git",
+  rev = "<同じcommit>"
+}
+----
+
+== 開発
+
+Nixのdevelopment shellへ入り、``cargo make verify``で全検査を実行します。
+
+[source,shell]
+----
+nix develop
+cargo make verify
+----
+
+セキュリティー上の考慮(許可アルゴリズムの既定がES256である理由を含む)は
+xref:SECURITY.adoc[セキュリティーポリシー]、変更手順はxref:CONTRIBUTING.adoc[コントリビューションガイド]を
+参照してください。
+
+== ライセンス
+
+MITとApache-2.0のdual licenseです。どちらかを選択して利用できます。
