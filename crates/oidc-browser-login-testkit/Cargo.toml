@@ -9,9 +9,13 @@ repository.workspace = true
 homepage.workspace = true
 publish = false
 
+[features]
+# 共有session管理の契約試験とメモリー実装。
+session = ["oidc-browser-login/session"]
+
 [dependencies]
 jsonwebtoken.workspace = true
-oidc-browser-login = { path = "../oidc-browser-login", version = "=0.1.0" }
+oidc-browser-login = { path = "../oidc-browser-login", version = "=0.2.0" }
 serde_json.workspace = true
 tokio.workspace = true
 wiremock.workspace = true

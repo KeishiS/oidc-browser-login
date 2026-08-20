@@ -2,10 +2,14 @@
 
 この文書には、利用側へ影響する変更だけを記録します。
 
+== 0.2.0 - 2026-08-20
+* feature ``session``: Web sessionの発行・検証(スライド延長)・CSRF照合・失効の共有。
+  storeへ渡すkeyは常にSHA-256 digestで、CSRF照合はcrate内の定数時間比較でだけ行う
+* feature ``cookie``: session cookieの名前規則(``__Host-``、サブパスは``__Secure-``へ退避)と
+  属性(``Secure``/``HttpOnly``/``SameSite=Lax``/``Max-Age``明示)の純関数
+* testkitへ``WebSessionStore``契約試験とメモリー実装(feature ``session``)
+
 == 0.1.0 - 2026-08-19
-
-=== 追加
-
 * 標準OIDCのブラウザーログイン中核(Authorization Code + PKCE S256、ID tokenの検証)
 * IdP固有値の設定(追加scope、所属claim名、許可署名アルゴリズム、token endpointのclient認証方式)
 * 保存adapterへ適用できる``LoginAttemptStore``契約試験

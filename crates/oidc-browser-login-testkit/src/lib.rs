@@ -8,6 +8,11 @@
 //! - [`check_login_attempt_store_contract`][]: [`LoginAttemptStore`]実装が満たすべき契約の試験。
 //!   利用側は自前のadapter(SQLiteやPostgreSQLなど)をこの関数へ渡して交換可能性を確かめる。
 
+#[cfg(feature = "session")]
+pub mod session;
+#[cfg(feature = "session")]
+pub use session::{InMemoryWebSessionStore, check_web_session_store_contract};
+
 use std::{
     collections::HashMap,
     sync::Mutex,

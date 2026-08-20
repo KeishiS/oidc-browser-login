@@ -12,6 +12,11 @@
 //! 認可(誰の利用を許可するか)はこのcrateの責務外です。呼出し側が
 //! [`VerifiedIdentity`]のclaim値を自身の設定と突き合わせて判定してください。
 
+#[cfg(feature = "cookie")]
+pub mod cookie;
+#[cfg(feature = "session")]
+pub mod session;
+
 use std::{collections::BTreeSet, sync::Arc, time::Duration};
 
 use base64::{Engine as _, engine::general_purpose::URL_SAFE_NO_PAD};

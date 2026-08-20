@@ -35,11 +35,21 @@ Authorization Code + PKCE S256の開始とcallback検証だけを担います。
   受け取ります。SQLiteやPostgreSQLなどの保存実装は呼出し側が用意し、testkitの契約試験で
   交換可能性を確かめます。
 
+== 任意のfeature
+
+feature ``session``は、ログイン後のWeb session管理(発行・検証・スライド延長・CSRF照合・失効)を
+共有します。保存portが受け取るkeyは常にtokenのSHA-256 digestで、CSRF照合はcrate内の定数時間比較で
+だけ行います。保存実装は呼出し側が用意し、testkitの契約試験(feature ``session``)で確かめます。
+
+feature ``cookie``は、session cookieの名前規則と属性方針を純関数で共有します。cookie pathが``/``の
+とき``__Host-``プレフィックス、サブパスでは``__Secure-``プレフィックスを使い、``Set-Cookie``
+ヘッダー値の文字列だけを組み立てます。
+
 == 責務の境界
 
-Cookieの発行、CSRF対策、Origin検査などのHTTP境界と、sessionの管理は呼出し側の責務です。
-このライブラリーはHTTP requestを直接受け取らず、callbackの``code``と``state``の文字列だけを
-受け取ります。
+Cookieの解析と送受信、CSRF tokenの受け渡し方法、Origin検査などのHTTP境界は呼出し側の責務です。
+このライブラリーはHTTP requestを直接受け取らず、callbackの``code``と``state``、cookieやヘッダーから
+取り出したtokenの文字列だけを受け取ります。
 
 == 配布状態
 
