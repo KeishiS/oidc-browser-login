@@ -9,11 +9,19 @@ repository.workspace = true
 homepage.workspace = true
 publish = false
 
+[features]
+# session cookieの名前規則(__Host-/__Secure-)と属性の組み立て。純関数のみ。
+cookie = []
+# Web sessionの発行・検証・CSRF照合の共有(発行はVerifiedIdentity起点、storeは秘密を比較しない)。
+session = ["dep:sha2", "dep:subtle"]
+
 [dependencies]
 base64.workspace = true
 openidconnect.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sha2 = { workspace = true, optional = true }
+subtle = { workspace = true, optional = true }
 thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true

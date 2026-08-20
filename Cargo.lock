@@ -1184,12 +1184,14 @@ dependencies = [
 
 [[package]]
 name = "oidc-browser-login"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
  "openidconnect",
  "serde",
  "serde_json",
+ "sha2",
+ "subtle",
  "thiserror 2.0.20",
  "tokio",
  "tracing",
@@ -1198,7 +1200,7 @@ dependencies = [
 
 [[package]]
 name = "oidc-browser-login-testkit"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "jsonwebtoken",
  "oidc-browser-login",

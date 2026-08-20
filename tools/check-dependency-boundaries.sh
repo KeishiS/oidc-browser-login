@@ -12,7 +12,8 @@ jq -e '
   def normal_dependencies($package):
     [.packages[] | select(.name == $package) | .dependencies[] | select(.kind == null) | .name] | sort;
   normal_dependencies("oidc-browser-login") ==
-    ["base64", "openidconnect", "serde", "serde_json", "thiserror", "tokio", "tracing", "url"] and
+    ["base64", "openidconnect", "serde", "serde_json", "sha2", "subtle",
+     "thiserror", "tokio", "tracing", "url"] and
   normal_dependencies("oidc-browser-login-testkit") ==
     ["jsonwebtoken", "oidc-browser-login", "serde_json", "tokio", "wiremock"]
 ' "$metadata" >/dev/null
