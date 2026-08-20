@@ -236,14 +236,26 @@ where
             .is_none(),
         "a session whose idle expiry <= now must be expired"
     );
+    // 絶対期限は延長の上限であり、到達後は期限切れになる(境界を含む)。
+    // adapterのschemaは idle <= absolute を前提にできるため、それを満たす値だけを使う。
     let store = new_store().await;
     store
         .issue(
-            record("session-c", "csrf-c", 3_000, 2_000),
+            record("session-c", "csrf-c", 1_500, 2_000),
             UnixMillis::new(500),
         )
         .await
         .unwrap_or_else(|_| panic!("issue must succeed"));
+    let session = store
+        .lookup_and_extend(
+            TokenDigest::of("session-c"),
+            UnixMillis::new(1_400),
+            Duration::from_millis(10_000),
+        )
+        .await
+        .unwrap_or_else(|_| panic!("{lookup_must_succeed}"))
+        .expect("a stored session must be returned while valid");
+    assert_eq!(session.idle_expires_at, UnixMillis::new(2_000));
     assert!(
         store
             .lookup_and_extend(
