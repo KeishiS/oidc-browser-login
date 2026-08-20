@@ -114,6 +114,9 @@ impl Default for SessionLifetime {
 }
 
 /// storeへ保存する新規session。平文tokenを含まない。
+///
+/// `idle_expires_at <= absolute_expires_at`を満たす。[`WebSessions::issue`]はこの不変条件を
+/// 保証するため、adapterのschemaは同じ制約を前提にできる。
 #[derive(Clone, Debug)]
 pub struct WebSessionRecord {
     pub session_digest: TokenDigest,
@@ -219,8 +222,9 @@ where
         let now = self.clock.now();
         let session_token = self.entropy.opaque_token();
         let csrf_token = self.entropy.opaque_token();
-        let idle_expires_at = saturating_add(now, self.lifetime.idle);
         let absolute_expires_at = saturating_add(now, self.lifetime.absolute);
+        // idle期限は絶対期限を超えない。storeのschemaが同じ不変条件を持てるようにする。
+        let idle_expires_at = saturating_add(now, self.lifetime.idle).min(absolute_expires_at);
         self.store
             .issue(
                 WebSessionRecord {
